@@ -44,6 +44,10 @@ engine built with it: an older one dies on it (Go's default) and writes no repor
 `host_names` are used only as the HTTP Host header and TLS SNI value when connecting to a target IP.
 `depth` is `shallow` (the default: about 100 common ports) or `deep` (the owner's opt-in
 deeper sweep: every TCP port, same probes and gate). Any other value is refused.
+`owner_note` (optional, at most 500 characters, no control characters but newline and tab) is the
+owner's hint for the LLM planner: what to look at first. It goes to the planner as data in the user
+message, never into the system prompt, which still opens with the scope lock; it adds no target,
+tool or permission, and the gate refuses whatever the note asks for outside the scope.
 
 Outputs in `--out`:
 

@@ -18,6 +18,8 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 // Scope is the control plane's scope.json.
@@ -27,7 +29,14 @@ type Scope struct {
 	Targets   []Target `json:"targets"`
 	HostNames []string `json:"host_names"`
 	Depth     string   `json:"depth"`
+	// OwnerNote is the owner's optional hint for the planner (DIVE-8984): what to
+	// look at first. It is data for the planner, never an authorization: it adds no
+	// target, tool or permission, and the scope lock and the gate stay as they are.
+	OwnerNote string `json:"owner_note,omitempty"`
 }
+
+// MaxOwnerNote is the longest owner note, in characters.
+const MaxOwnerNote = 500
 
 // Depths. Deep is the owner's opt-in deeper sweep (DIVE-8925): every TCP port
 // instead of the common ones. Same tools, same gate, same scope: deeper, not wider.
@@ -72,6 +81,7 @@ func Load(path string) (*Scope, error) {
 	if s.Depth == "" {
 		s.Depth = Shallow
 	}
+	s.OwnerNote = strings.TrimSpace(s.OwnerNote)
 	return &s, nil
 }
 
@@ -108,6 +118,12 @@ func (s *Scope) Validate() error {
 	case "", Shallow, Deep:
 	default:
 		return refuse("depth %q is not available (only \"shallow\" or \"deep\")", s.Depth)
+	}
+	if n := utf8.RuneCountInString(s.OwnerNote); n > MaxOwnerNote {
+		return refuse("owner_note is %d characters (at most %d)", n, MaxOwnerNote)
+	}
+	if !utf8.ValidString(s.OwnerNote) || strings.IndexFunc(s.OwnerNote, func(r rune) bool { return unicode.IsControl(r) && r != '\n' && r != '\t' }) >= 0 {
+		return refuse("owner_note holds control characters")
 	}
 	return nil
 }

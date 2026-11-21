@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/5dive-ai/5dive-security/engine/internal/scope"
@@ -33,6 +34,8 @@ func TestLoadRefusesBadScopes(t *testing.T) {
 		"unspecified":     `{"run_id":"r1","targets":[{"kind":"ip","value":"0.0.0.0"}]}`,
 		"bad host name":   `{"run_id":"r1","targets":[{"kind":"ip","value":"203.0.113.7"}],"host_names":["evil.com:443"]}`,
 		"unknown depth":   `{"run_id":"r1","targets":[{"kind":"ip","value":"203.0.113.7"}],"depth":"exploit"}`,
+		"long note":       `{"run_id":"r1","targets":[{"kind":"ip","value":"203.0.113.7"}],"owner_note":"` + strings.Repeat("я", scope.MaxOwnerNote+1) + `"}`,
+		"control in note": `{"run_id":"r1","targets":[{"kind":"ip","value":"203.0.113.7"}],"owner_note":"look at\u001b[2J this"}`,
 	}
 	for name, body := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -57,6 +60,21 @@ func TestDepthDial(t *testing.T) {
 		s, err := scope.Load(writeScope(t, body))
 		if err != nil || s.Depth != want {
 			t.Fatalf("%s: depth %v, err %v; want %s", body, s, err, want)
+		}
+	}
+}
+
+// DIVE-8984: the owner's note is optional, trimmed, and counted in characters, not
+// bytes (a 500-character Russian note is 1000 bytes). An older control plane sends none.
+func TestOwnerNote(t *testing.T) {
+	for body, want := range map[string]string{
+		`{"run_id":"r1","targets":[{"kind":"ip","value":"203.0.113.7"}],"owner_note":"  I moved SSH to 2222.\nCheck the admin page.  "}`: "I moved SSH to 2222.\nCheck the admin page.",
+		`{"run_id":"r1","targets":[{"kind":"ip","value":"203.0.113.7"}],"owner_note":"` + strings.Repeat("я", scope.MaxOwnerNote) + `"}`: strings.Repeat("я", scope.MaxOwnerNote),
+		`{"run_id":"r1","targets":[{"kind":"ip","value":"203.0.113.7"}]}`:                                                                "",
+	} {
+		s, err := scope.Load(writeScope(t, body))
+		if err != nil || s.OwnerNote != want {
+			t.Fatalf("%.80s: note %q, err %v; want %q", body, s.OwnerNote, err, want)
 		}
 	}
 }

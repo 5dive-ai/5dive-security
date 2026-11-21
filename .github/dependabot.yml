@@ -1,0 +1,15 @@
+# Security updates only: open-pull-requests-limit 0 turns off routine version
+# bumps, and security PRs still open with the "fix(deps)" title the release
+# tooling accepts (the same settings 5dive-plugins used for this engine).
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /engine
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 0
+    commit-message: { prefix: "fix(deps)" }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 0
+    commit-message: { prefix: "fix(deps)" }

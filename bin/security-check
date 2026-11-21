@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# security-check — runs the seccheck engine shipped beside this plugin (DIVE-8897).
+# security-check — runs the seccheck engine placed beside this launcher (DIVE-8897).
 #
-# Stage 1 is driven by the 5dive control plane, which uploads `seccheck` and a
-# scope.json to the owner's box and runs it there directly; this launcher only
-# exists so the plugin has the bin/<name> every plugin dir in this repo ships.
+# The 5dive control plane runs `seccheck` itself, on the control plane, against a
+# sealed clone (see README); this launcher only runs a binary placed beside it.
 # Targets come only from the --scope file: nothing here adds one.
 set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

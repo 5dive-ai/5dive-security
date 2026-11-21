@@ -1,6 +1,6 @@
-# security-check
+# 5dive-security
 
-The engine behind «Check my setup» (stage 1, DIVE-8897). `seccheck` is one static Go
+The engine behind 5dive's «Check my setup» (DIVE-8897; moved here from 5dive-plugins in DIVE-8952). `seccheck` is one static Go
 binary that checks a **sealed, throwaway clone** of an owner's server from the outside
 and writes a plain report: what is open, how serious it is, how to close it.
 
@@ -88,11 +88,21 @@ round. Wall-clock and token budgets are checked between steps.
 ## Build and test
 
 ```
-cd plugins/security-check/engine
+cd engine
 go test ./...
 CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -o seccheck ./cmd/seccheck
 ```
 
-Go 1.25 (golang.org/x/crypto needs it). The only dependencies are `modernc.org/sqlite` and `golang.org/x/crypto`. CI:
-`.github/workflows/security-check.yml` uploads the amd64 and arm64 binaries.
+Go 1.25 (golang.org/x/crypto needs it). The only dependencies are `modernc.org/sqlite` and `golang.org/x/crypto`.
 `bin/security-check` only launches the binary that sits next to it.
+
+## Releases
+
+CI (`.github/workflows/ci.yml`) vets, tests and builds linux/amd64 and linux/arm64 on every
+pull request. Every push to `main` also publishes them as the release `seccheck-<full sha>`,
+with a `.sha256` beside each binary. A release is never overwritten.
+
+The 5dive control plane runs exactly one of those builds: lodar/5dive-api pins it by tag and
+sha256 in `scripts/seccheck-engine.pin` (bump with `scripts/seccheck-engine-pin.sh <sha>`), and
+its deploy downloads, verifies and installs it. Builds published before the move are still
+releases of 5dive-ai/5dive-plugins.

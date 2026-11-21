@@ -122,3 +122,29 @@ func TestRenderBinaryAndEmpty(t *testing.T) {
 		t.Error("sniff names connections wrongly")
 	}
 }
+
+// An SSH server's greeting is followed by its key exchange: mostly algorithm names,
+// so it renders as text, but its length fields are NUL bytes. Postgres refuses
+// U+0000, so a report carrying one was lost on save (DIVE-8961).
+func TestRenderEscapesControlBytesInText(t *testing.T) {
+	kex := []byte("SSH-2.0-Go\r\n\x00\x00\x01\x2c\x0a\x14\x8f\x01curve25519-sha256,ecdh-sha2-nistp256,diffie-hellman-group14-sha256\x00\x00\x00\x0bssh-ed25519\x7f")
+	got := render(kex, len(kex), maxResponse, noneGot)
+	if strings.HasPrefix(got, "[") {
+		t.Fatalf("SSH key exchange rendered as binary, the greeting is lost: %q", got)
+	}
+	if strings.ContainsFunc(got, func(r rune) bool { return r < 0x20 && r != '\n' && r != '\r' && r != '\t' || r == 0x7f }) {
+		t.Fatalf("raw control byte left in evidence: %q", got)
+	}
+	if !strings.HasPrefix(got, "SSH-2.0-Go\r\n\\x00\\x00\\x01,\n\\x14?\\x01curve25519") || !strings.HasSuffix(got, "ssh-ed25519\\x7f") {
+		t.Errorf("escapes wrong: %q", got)
+	}
+}
+
+func TestAddedExchangeEscapesControlBytes(t *testing.T) {
+	r := NewRecorder()
+	r.Add(model.Exchange{Proto: "exec", Target: "10.0.0.1", Request: "nmap\x00", Response: "22/tcp open\x00ssh"})
+	ex := r.Exchanges()
+	if len(ex) != 1 || ex[0].Request != "nmap\\x00" || ex[0].Response != "22/tcp open\\x00ssh" {
+		t.Errorf("added exchange not escaped: %+v", ex)
+	}
+}

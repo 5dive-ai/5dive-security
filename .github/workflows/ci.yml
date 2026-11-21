@@ -1,0 +1,97 @@
+name: ci
+
+# Vets, tests and cross-builds the seccheck engine (pure Go, static), and on a
+# push to main publishes the two binaries as the release `seccheck-<full sha>`
+# with a `.sha256` beside each. lodar/5dive-api pins one of those releases by
+# tag AND sha256 (scripts/seccheck-engine.pin) and its deploy downloads,
+# verifies and installs it.
+#
+# A release is never overwritten: a re-run on a sha that already has one leaves
+# it alone, because a rebuild is not byte-identical and would break the sha256
+# the API pinned.
+#
+# Moved here from 5dive-plugins (.github/workflows/security-check.yml) with the
+# engine (DIVE-8952). Releases published there before the move stay there.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  engine:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: engine
+    env:
+      GOTOOLCHAIN: local
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+          cache-dependency-path: engine/go.sum
+      - name: gofmt
+        run: |
+          bad=$(gofmt -l .)
+          [ -z "$bad" ] || { echo "$bad"; echo "these files need gofmt"; exit 1; }
+      - run: go vet ./...
+      - run: go test -count=1 ./...
+      - name: build linux/amd64 + linux/arm64
+        env:
+          CGO_ENABLED: '0'
+        run: |
+          for arch in amd64 arm64; do
+            GOOS=linux GOARCH=$arch go build -trimpath \
+              -ldflags "-s -w -X main.Version=0.1.0+${GITHUB_SHA::7}" \
+              -o dist/seccheck-linux-$arch ./cmd/seccheck
+          done
+          ls -l dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: seccheck-linux-amd64
+          path: engine/dist/seccheck-linux-amd64
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: seccheck-linux-arm64
+          path: engine/dist/seccheck-linux-arm64
+          if-no-files-found: error
+
+  publish:
+    needs: engine
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: seccheck-${{ github.sha }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: seccheck-linux-*
+          merge-multiple: true
+          path: dist
+      - name: publish release seccheck-<sha>
+        working-directory: dist
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "$TAG already published; a release is never overwritten"
+            exit 0
+          fi
+          for a in amd64 arm64; do
+            sha256sum "seccheck-linux-$a" > "seccheck-linux-$a.sha256"
+          done
+          cat ./*.sha256
+          gh release create "$TAG" --target "$GITHUB_SHA" --latest=false \
+            --title "seccheck engine ${GITHUB_SHA::7}" \
+            --notes "seccheck engine built from $GITHUB_SHA. Pin it in 5dive-api with scripts/seccheck-engine-pin.sh $GITHUB_SHA (tag + sha256 of seccheck-linux-amd64)." \
+            seccheck-linux-amd64 seccheck-linux-amd64.sha256 \
+            seccheck-linux-arm64 seccheck-linux-arm64.sha256

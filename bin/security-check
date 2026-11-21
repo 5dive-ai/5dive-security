@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# security-check — runs the seccheck engine placed beside this launcher (DIVE-8897).
+#
+# The 5dive control plane runs `seccheck` itself, on the control plane, against a
+# sealed clone (see README); this launcher only runs a binary placed beside it.
+# Targets come only from the --scope file: nothing here adds one.
+set -euo pipefail
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+for c in "$here/seccheck" "$here/../engine/seccheck" "$(command -v seccheck || true)"; do
+  if [[ -n "$c" && -x "$c" ]]; then exec "$c" "$@"; fi
+done
+echo "security-check: the seccheck binary is not installed" >&2
+exit 1

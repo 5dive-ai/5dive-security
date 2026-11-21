@@ -39,7 +39,7 @@ func bannerGrab(ctx context.Context, env *Env, in model.Intent) (Result, error) 
 			proto, greeting = "http", resp
 		}
 	}
-	banner := firstLine(greeting)
+	banner := model.Printable(firstLine(greeting))
 	return Result{
 		Facts:  []model.Fact{{Kind: "service", Target: in.Target, Data: map[string]string{"proto": proto, "banner": banner}}},
 		Assets: []model.Asset{{Kind: "service", Key: in.Target, Data: map[string]string{"proto": proto, "banner": banner}}},

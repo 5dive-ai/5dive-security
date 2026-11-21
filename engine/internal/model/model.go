@@ -158,6 +158,29 @@ type Asset struct {
 	Data map[string]string `json:"data,omitempty"`
 }
 
+// Printable shows control bytes as \xNN escapes, keeping tab, CR and LF. Evidence
+// is raw wire text: an SSH greeting is followed by key-exchange bytes full of NUL,
+// and Postgres refuses U+0000 in text and jsonb, so a report carrying one is lost
+// on save (DIVE-8961).
+func Printable(s string) string {
+	if strings.IndexFunc(s, unprintable) < 0 {
+		return s
+	}
+	var b strings.Builder
+	for _, r := range s {
+		if unprintable(r) {
+			fmt.Fprintf(&b, "\\x%02x", r)
+			continue
+		}
+		b.WriteRune(r)
+	}
+	return b.String()
+}
+
+func unprintable(r rune) bool {
+	return r < 0x20 && r != '\t' && r != '\n' && r != '\r' || r == 0x7f
+}
+
 // Clip shortens s to at most n bytes, marking the cut.
 func Clip(s string, n int) string {
 	if len(s) <= n {

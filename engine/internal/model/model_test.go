@@ -59,3 +59,16 @@ func TestStableAsset(t *testing.T) {
 		}
 	}
 }
+
+func TestPrintable(t *testing.T) {
+	for in, want := range map[string]string{
+		"SSH-2.0-OpenSSH_9.6\r\n": "SSH-2.0-OpenSSH_9.6\r\n",
+		"a\x00b\x1b[0m\x7f\tc":    "a\\x00b\\x1b[0m\\x7f\tc",
+		"Привет ✓":                "Привет ✓",
+		"":                        "",
+	} {
+		if got := Printable(in); got != want {
+			t.Errorf("Printable(%q) = %q, want %q", in, got, want)
+		}
+	}
+}

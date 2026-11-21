@@ -67,10 +67,12 @@ func (rc *recConn) Read(b []byte) (int, error) {
 	return n, err
 }
 
+// Write records what it sends BEFORE sending it: Go's HTTP client writes from its
+// own goroutine, so the reply can be read and the step finished before Write
+// returns, which left a request recorded as «nothing sent».
 func (rc *recConn) Write(b []byte) (int, error) {
-	n, err := rc.Conn.Write(b)
-	rc.c.keep(&rc.c.out, &rc.c.sent, b[:n])
-	return n, err
+	rc.c.keep(&rc.c.out, &rc.c.sent, b)
+	return rc.Conn.Write(b)
 }
 
 func (r *Recorder) wrap(c net.Conn, proto, target string) net.Conn {
@@ -147,7 +149,9 @@ func recordTLS(raw net.Conn, tc *tls.Conn, proto string) net.Conn {
 
 func (c *conv) exchange() (model.Exchange, bool) {
 	if c.fixed != nil {
-		return *c.fixed, true
+		e := *c.fixed
+		e.Request, e.Response = model.Printable(e.Request), model.Printable(e.Response)
+		return e, true
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -188,7 +192,8 @@ func sniff(proto string, out []byte) string {
 	return proto
 }
 
-// render shows captured bytes: text with secrets masked, or a hex head for binary.
+// render shows captured bytes: text with secrets masked and control bytes escaped,
+// or a hex head for binary.
 func render(b []byte, total, limit int, empty string) string {
 	if total == 0 {
 		return "(" + empty + ")"
@@ -200,7 +205,7 @@ func render(b []byte, total, limit int, empty string) string {
 		}
 		return fmt.Sprintf("[%d bytes, binary] % x", total, head)
 	}
-	s := Redact(string(bytes.ToValidUTF8(b, []byte("?"))))
+	s := model.Printable(Redact(string(bytes.ToValidUTF8(b, []byte("?")))))
 	if total > len(b) {
 		s += fmt.Sprintf("\n[%d more bytes not kept]", total-len(b))
 	}

@@ -1,4 +1,4 @@
-module github.com/lodar/5dive-plugins/plugins/security-check/engine
+module github.com/5dive-ai/5dive-security/engine
 
 go 1.25.0
 

@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/crypto/ssh"
 
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/model"
+	"github.com/5dive-ai/5dive-security/engine/internal/model"
 )
 
 var errProbeDone = errors.New("probe done: stopping before any password is sent")

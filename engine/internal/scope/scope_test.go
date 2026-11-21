@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/scope"
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/testnet"
+	"github.com/5dive-ai/5dive-security/engine/internal/scope"
+	"github.com/5dive-ai/5dive-security/engine/internal/testnet"
 )
 
 func writeScope(t *testing.T, body string) string {

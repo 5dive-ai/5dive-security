@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/model"
+	"github.com/5dive-ai/5dive-security/engine/internal/model"
 )
 
 func TestAssetUpsertAcrossTwoRuns(t *testing.T) {

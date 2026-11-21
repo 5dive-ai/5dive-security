@@ -23,12 +23,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/engine"
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/llm"
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/report"
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/scope"
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/store"
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/tools"
+	"github.com/5dive-ai/5dive-security/engine/internal/engine"
+	"github.com/5dive-ai/5dive-security/engine/internal/llm"
+	"github.com/5dive-ai/5dive-security/engine/internal/report"
+	"github.com/5dive-ai/5dive-security/engine/internal/scope"
+	"github.com/5dive-ai/5dive-security/engine/internal/store"
+	"github.com/5dive-ai/5dive-security/engine/internal/tools"
 )
 
 // Version is set at build time with -ldflags "-X main.Version=...".

@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"sync"
 
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/model"
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/scope"
+	"github.com/5dive-ai/5dive-security/engine/internal/model"
+	"github.com/5dive-ai/5dive-security/engine/internal/scope"
 )
 
 // Recorder is the engine's traffic-recording proxy (DIVE-8921). The engine gives

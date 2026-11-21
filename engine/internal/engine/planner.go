@@ -7,9 +7,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/model"
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/scope"
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/tools"
+	"github.com/5dive-ai/5dive-security/engine/internal/model"
+	"github.com/5dive-ai/5dive-security/engine/internal/scope"
+	"github.com/5dive-ai/5dive-security/engine/internal/tools"
 )
 
 // baseline is the deterministic planner: a fixed shallow recon sequence derived

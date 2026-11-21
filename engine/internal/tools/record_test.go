@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/model"
+	"github.com/5dive-ai/5dive-security/engine/internal/model"
 )
 
 // recordingEnv is testEnv with the worker's traffic recorder wired in, as the engine does.

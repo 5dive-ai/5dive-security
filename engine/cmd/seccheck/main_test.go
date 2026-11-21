@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/testnet"
+	"github.com/5dive-ai/5dive-security/engine/internal/testnet"
 )
 
 func testDeps(t *testing.T, rec *testnet.Recorder, env map[string]string) deps {

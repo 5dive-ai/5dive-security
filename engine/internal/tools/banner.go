@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/model"
+	"github.com/5dive-ai/5dive-security/engine/internal/model"
 )
 
 // bannerGrab works out what speaks on a port: it reads a greeting (SSH, FTP,

@@ -17,9 +17,9 @@ import (
 
 	"golang.org/x/crypto/ssh"
 
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/model"
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/scope"
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/testnet"
+	"github.com/5dive-ai/5dive-security/engine/internal/model"
+	"github.com/5dive-ai/5dive-security/engine/internal/scope"
+	"github.com/5dive-ai/5dive-security/engine/internal/testnet"
 )
 
 func testEnv(t *testing.T) (*Env, *testnet.Recorder) {

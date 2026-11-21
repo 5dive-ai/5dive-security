@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/model"
+	"github.com/5dive-ai/5dive-security/engine/internal/model"
 )
 
 // TopPorts is the common-port list the shallow scan tries (about 100 ports).

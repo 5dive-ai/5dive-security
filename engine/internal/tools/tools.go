@@ -13,8 +13,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/model"
-	"github.com/lodar/5dive-plugins/plugins/security-check/engine/internal/scope"
+	"github.com/5dive-ai/5dive-security/engine/internal/model"
+	"github.com/5dive-ai/5dive-security/engine/internal/scope"
 )
 
 // Risk classes for the approval gate.
